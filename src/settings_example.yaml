@@ -12,6 +12,9 @@ client_id: test
 ha_status: hass     # status topic for homeassistant: defaults to hass if key is omitted
 timezone: Europe/Brussels
 update_interval: 60 # Defaults to 60
+reconnect_interval:
+  refused: 60
+  oserror: 120
 sensors:
   temperature: true
   display: true
