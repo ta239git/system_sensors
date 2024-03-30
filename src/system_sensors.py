@@ -10,6 +10,7 @@ import argparse
 import threading
 import paho.mqtt.client as mqtt
 import importlib.metadata
+import traceback
 
 from sensors import *
 
@@ -294,13 +295,13 @@ if __name__ == '__main__':
             mqttClient.connect(settings['mqtt']['hostname'], settings['mqtt']['port'])
             break
         except ConnectionRefusedError as e:
-            write_message_to_console('Unable to connect to MQTT broker')
-            write_message_to_console(e)
+            write_message_to_console('Unable to connect to MQTT broker. ConnectionRefusedError')
+            write_message_to_console(traceback.format_exc())
             # get this value from settings
             time.sleep(settings['reconnect_interval']['refused'])
         except OSError as e:
-            write_message_to_console('Unable to connect to MQTT broker')
-            write_message_to_console(e)
+            write_message_to_console('Unable to connect to MQTT broker. OSError')
+            write_message_to_console(traceback.format_exc())
             # get this value from settings
             time.sleep(settings['reconnect_interval']['oserror'])
     try:
