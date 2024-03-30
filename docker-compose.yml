@@ -16,3 +16,6 @@ services:
       - /tmp/system_sensor_pipe:/app/host/system_sensor_pipe:ro
     environment:
       - LD_LIBRARY_PATH=/opt/vc/lib
+
+extra_hosts:
+    - "host.docker.internal:host-gateway"
