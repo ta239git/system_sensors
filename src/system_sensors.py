@@ -124,6 +124,12 @@ def set_defaults(settings):
         settings['sensors']['external_drives'] = {}
     if "rasp" not in OS_DATA["ID"]:
         settings['sensors']['display'] = False
+    if 'reconnect_interval' not in settings:
+        settings['reconnect_interval'] = {}
+    if 'refused' not in settings['reconnect_interval']:
+        settings['reconnect_interval']['refused'] = 60
+    if 'oserror' not in settings['reconnect_interval']:
+        settings['reconnect_interval']['oserror'] = 120
 
     # 'settings' argument is local, so needs to be returned to overwrite the one in the main function
     return settings
@@ -287,16 +293,16 @@ if __name__ == '__main__':
         try:
             mqttClient.connect(settings['mqtt']['hostname'], settings['mqtt']['port'])
             break
-        except ConnectionRefusedError:
-            # sleep for 2 minutes if broker is unavailable and retry.
-            # Make this value configurable?
-            # this feels like a dirty hack. Is there some other way to do this?
-            time.sleep(120)
-        except OSError:
-            # sleep for 10 minutes if broker is not reachable, i.e. network is down
-            # Make this value configurable?
-            # this feels like a dirty hack. Is there some other way to do this?
-            time.sleep(600)
+        except ConnectionRefusedError as e:
+            write_message_to_console('Unable to connect to MQTT broker')
+            write_message_to_console(e)
+            # get this value from settings
+            time.sleep(settings['reconnect_interval']['refused'])
+        except OSError as e:
+            write_message_to_console('Unable to connect to MQTT broker')
+            write_message_to_console(e)
+            # get this value from settings
+            time.sleep(settings['reconnect_interval']['oserror'])
     try:
         send_config_message(mqttClient)
     except Exception as e:
