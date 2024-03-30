@@ -11,6 +11,7 @@ import threading
 import paho.mqtt.client as mqtt
 import importlib.metadata
 import traceback
+import ssl
 
 from sensors import *
 
@@ -230,6 +231,7 @@ def on_message(client, userdata, message):
 
 
 if __name__ == '__main__':
+    write_message_to_console('Init run.')
     try:
         args = _parser().parse_args()
         settings_file = args.settings
@@ -282,10 +284,14 @@ if __name__ == '__main__':
         )
 
     # if ca_certs is populated, we expect the others have been populated accordingly
-    if settings['tls']['ca_certs'] != '':
+    if settings['tls']['ca_certs'] is not None and settings['tls']['ca_certs'] != '':
       mqttClient.tls_set(
         ca_certs=settings['tls']['ca_certs'], certfile=settings['tls']['certfile'], keyfile=settings['tls']['keyfile']
       )
+    else:
+      write_message_to_console('Cert not defined. Setting unsecured connection.')
+      mqttClient.tls_set(cert_reqs=ssl.CERT_NONE)
+      mqttClient.tls_insecure_set(True)
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
@@ -304,6 +310,7 @@ if __name__ == '__main__':
             write_message_to_console(traceback.format_exc())
             # get this value from settings
             time.sleep(settings['reconnect_interval']['oserror'])
+    write_message_to_console('Connected to MQTT Broker.')
     try:
         send_config_message(mqttClient)
     except Exception as e:
@@ -315,6 +322,7 @@ if __name__ == '__main__':
         write_message_to_console('Error while attempting to perform inital sensor update: ' + str(e))
         exit()
 
+    write_message_to_console('Starting job.')
     job = Job(interval=dt.timedelta(seconds=poll_interval), execute=update_sensors)
     job.start()
 
