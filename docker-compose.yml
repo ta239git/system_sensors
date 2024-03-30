@@ -17,5 +17,5 @@ services:
     environment:
       - LD_LIBRARY_PATH=/opt/vc/lib
 
-extra_hosts:
+    extra_hosts:
     - "host.docker.internal:host-gateway"
